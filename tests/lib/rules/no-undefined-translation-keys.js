@@ -103,6 +103,36 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
+    // useTranslations hook (next-intl) with namespace prefix
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("common");
+          return t("appName");
+        }
+      `,
+      options,
+    },
+    // useTranslations hook with another valid key
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("common");
+          return t("welcome");
+        }
+      `,
+      options,
+    },
+    // useTranslations with errors namespace
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("errors");
+          return t("notFound");
+        }
+      `,
+      options,
+    },
   ],
 
   invalid: [
@@ -162,6 +192,38 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         {
           message:
             'Translation key "errors.serverError" in namespace "default" is used here but missing in the translations file.',
+        },
+      ],
+    },
+    // useTranslations with missing key
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("common");
+          return t("missingKey");
+        }
+      `,
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "common.missingKey" in namespace "default" is used here but missing in the translations file.',
+        },
+      ],
+    },
+    // useTranslations with wrong namespace prefix
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("wrong");
+          return t("appName");
+        }
+      `,
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "wrong.appName" in namespace "default" is used here but missing in the translations file.',
         },
       ],
     },
