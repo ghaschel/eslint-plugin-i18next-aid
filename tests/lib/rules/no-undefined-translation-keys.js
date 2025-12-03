@@ -23,6 +23,7 @@ const ruleTester = new RuleTester({
   },
 });
 
+// Using relative path from the tests directory (demonstrates relative path support)
 const options = [
   {
     namespaceTranslationMappingFile: path.resolve(
@@ -35,7 +36,9 @@ const options = [
 
 ruleTester.run("no-undefined-translation-keys", rule, {
   valid: [
-    // Basic translation keys
+    //------------------------------------------------------------------
+    // Basic translation keys (direct t() calls)
+    //------------------------------------------------------------------
     {
       code: "t('pizza')",
       options,
@@ -44,6 +47,7 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       code: "t('records.contracts')",
       options,
     },
+    // Plural key support (matches milesAway_one / milesAway_other)
     {
       code: "t('distance.milesAway')",
       options,
@@ -53,30 +57,56 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       code: "t('common.appName')",
       options,
     },
-    // getTranslations with await - valid key
+
+    //------------------------------------------------------------------
+    // react-i18next: useTranslation hook
+    //------------------------------------------------------------------
+    // useTranslation with keyPrefix option
     {
       code: `
-        async function test() {
+        function Component() {
+          const t = useTranslation("default", { keyPrefix: "common" });
+          return t("appName");
+        }
+      `,
+      options,
+    },
+    // useTranslation with destructuring
+    {
+      code: `
+        function Component() {
+          const { t } = useTranslation("default", { keyPrefix: "errors" });
+          return t("notFound");
+        }
+      `,
+      options,
+    },
+
+    //------------------------------------------------------------------
+    // next-intl: getTranslations (server components)
+    //------------------------------------------------------------------
+    // getTranslations with await
+    {
+      code: `
+        async function Page() {
           const t = await getTranslations("common");
           return t("appName");
         }
       `,
       options,
     },
-    // getTranslations with await - another valid key
     {
       code: `
-        async function test() {
+        async function Page() {
           const t = await getTranslations("common");
           return t("welcome");
         }
       `,
       options,
     },
-    // getTranslations with errors namespace
     {
       code: `
-        async function test() {
+        async function Page() {
           const t = await getTranslations("errors");
           return t("notFound");
         }
@@ -93,17 +123,10 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
-    // useTranslation hook with keyPrefix
-    {
-      code: `
-        function Component() {
-          const t = useTranslation("default", { keyPrefix: "common" });
-          return t("appName");
-        }
-      `,
-      options,
-    },
-    // useTranslations hook (next-intl) with namespace prefix
+
+    //------------------------------------------------------------------
+    // next-intl: useTranslations (client components)
+    //------------------------------------------------------------------
     {
       code: `
         function Component() {
@@ -113,7 +136,6 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
-    // useTranslations hook with another valid key
     {
       code: `
         function Component() {
@@ -123,7 +145,6 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
-    // useTranslations with errors namespace
     {
       code: `
         function Component() {
@@ -133,10 +154,43 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
+
+    //------------------------------------------------------------------
+    // Namespace syntax (namespace:key)
+    //------------------------------------------------------------------
+    {
+      code: "t('default:pizza')",
+      options,
+    },
+    {
+      code: "t('default:common.appName')",
+      options,
+    },
+
+    //------------------------------------------------------------------
+    // Dynamic keys are ignored (handled by translation-key-string-literal rule)
+    //------------------------------------------------------------------
+    // t.has() guard pattern - dynamic keys are skipped
+    {
+      code: "const label = t.has(item.labelKey) ? t(item.labelKey) : item.labelKey;",
+      options,
+    },
+    // Variable key - skipped
+    {
+      code: "t(someVariable)",
+      options,
+    },
+    // Template literal - skipped
+    {
+      code: "t(`dynamic.${key}`)",
+      options,
+    },
   ],
 
   invalid: [
-    // Missing key - basic
+    //------------------------------------------------------------------
+    // Missing keys - basic
+    //------------------------------------------------------------------
     {
       code: "t('thisOneIsMissing')",
       options,
@@ -147,10 +201,23 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         },
       ],
     },
-    // getTranslations with missing key
+    {
+      code: "t('common.missingNestedKey')",
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "common.missingNestedKey" in namespace "default" is used here but missing in the translations file.',
+        },
+      ],
+    },
+
+    //------------------------------------------------------------------
+    // next-intl: getTranslations with missing keys
+    //------------------------------------------------------------------
     {
       code: `
-        async function test() {
+        async function Page() {
           const t = await getTranslations("common");
           return t("missingKey");
         }
@@ -163,11 +230,11 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         },
       ],
     },
-    // getTranslations with wrong namespace prefix
+    // getTranslations with non-existent prefix
     {
       code: `
-        async function test() {
-          const t = await getTranslations("wrong");
+        async function Page() {
+          const t = await getTranslations("nonExistentPrefix");
           return t("appName");
         }
       `,
@@ -175,7 +242,7 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       errors: [
         {
           message:
-            'Translation key "wrong.appName" in namespace "default" is used here but missing in the translations file.',
+            'Translation key "nonExistentPrefix.appName" in namespace "default" is used here but missing in the translations file.',
         },
       ],
     },
@@ -195,7 +262,10 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         },
       ],
     },
-    // useTranslations with missing key
+
+    //------------------------------------------------------------------
+    // next-intl: useTranslations with missing keys
+    //------------------------------------------------------------------
     {
       code: `
         function Component() {
@@ -211,11 +281,11 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         },
       ],
     },
-    // useTranslations with wrong namespace prefix
+    // useTranslations with non-existent prefix
     {
       code: `
         function Component() {
-          const t = useTranslations("wrong");
+          const t = useTranslations("nonExistentPrefix");
           return t("appName");
         }
       `,
@@ -223,7 +293,26 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       errors: [
         {
           message:
-            'Translation key "wrong.appName" in namespace "default" is used here but missing in the translations file.',
+            'Translation key "nonExistentPrefix.appName" in namespace "default" is used here but missing in the translations file.',
+        },
+      ],
+    },
+
+    //------------------------------------------------------------------
+    // react-i18next: useTranslation with missing keys
+    //------------------------------------------------------------------
+    {
+      code: `
+        function Component() {
+          const t = useTranslation("default", { keyPrefix: "common" });
+          return t("missingKey");
+        }
+      `,
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "common.missingKey" in namespace "default" is used here but missing in the translations file.',
         },
       ],
     },
