@@ -1,6 +1,6 @@
 {
-  "name": "eslint-plugin-i18next-no-undefined-translation-keys",
-  "version": "3.4.0",
+  "name": "eslint-plugin-i18next-aid",
+  "version": "1.0.0",
   "description": "Detects translation keys in use which are missing from translation files",
   "keywords": [
     "eslint",
@@ -8,10 +8,10 @@
     "eslint-plugin",
     "i18next"
   ],
-  "author": "Kevin Dice",
+  "author": "Guilherme Haschel",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kevindice/eslint-plugin-i18next-no-undefined-translation-keys.git"
+    "url": "https://github.com/ghaschel/eslint-plugin-i18next-aid.git"
   },
   "main": "lib/index.js",
   "scripts": {
