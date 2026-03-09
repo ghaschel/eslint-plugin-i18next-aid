@@ -14,5 +14,16 @@
   "errors": {
     "notFound": "Not found",
     "unauthorized": "Unauthorized"
+  },
+  "admin": {
+    "sidebar": {
+      "comingSoon": "Soon",
+      "toggleSidebar": "Toggle sidebar",
+      "emailTemplates": "Email Templates"
+    }
+  },
+  "login": {
+    "signInSubtitle": "Sign in to continue",
+    "forgotPassword": "Forgot your password?"
   }
 }

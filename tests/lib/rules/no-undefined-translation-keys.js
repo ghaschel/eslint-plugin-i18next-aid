@@ -81,6 +81,49 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
+    // useTranslation with namespace that doesn't exist in mapping but exists as prefix
+    // This is the react-i18next pattern with fallback to default namespace
+    {
+      code: `
+        function Component() {
+          const { t } = useTranslation("login");
+          return t("signInSubtitle");
+        }
+      `,
+      options,
+    },
+    // useTranslation with namespace fallback (direct assignment)
+    {
+      code: `
+        function Component() {
+          const t = useTranslation("login");
+          return t("forgotPassword");
+        }
+      `,
+      options,
+    },
+    // useTranslation with namespace fallback - arrow function component
+    {
+      code: `
+        const Component = () => {
+          const { t } = useTranslation("login");
+          return t("signInSubtitle");
+        };
+      `,
+      options,
+    },
+    // useTranslation with namespace fallback - multiple t() calls
+    {
+      code: `
+        function Component() {
+          const { t } = useTranslation("login");
+          return (
+            t("signInSubtitle") + t("forgotPassword")
+          );
+        }
+      `,
+      options,
+    },
 
     //------------------------------------------------------------------
     // next-intl: getTranslations (server components)
@@ -150,6 +193,47 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         function Component() {
           const t = useTranslations("errors");
           return t("notFound");
+        }
+      `,
+      options,
+    },
+    // Nested prefix (e.g., "admin.sidebar")
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("admin.sidebar");
+          return t("emailTemplates");
+        }
+      `,
+      options,
+    },
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("admin.sidebar");
+          return t("toggleSidebar");
+        }
+      `,
+      options,
+    },
+    // Arrow function component
+    {
+      code: `
+        const Component = () => {
+          const t = useTranslations("admin.sidebar");
+          return t("comingSoon");
+        };
+      `,
+      options,
+    },
+    // Multiple t() calls in same component
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("admin.sidebar");
+          return (
+            t("emailTemplates") + t("toggleSidebar") + t("comingSoon")
+          );
         }
       `,
       options,
@@ -313,6 +397,73 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         {
           message:
             'Translation key "common.missingKey" in namespace "default" is used here but missing in the translations file.',
+        },
+      ],
+    },
+    // useTranslation with namespace fallback - missing key
+    {
+      code: `
+        function Component() {
+          const { t } = useTranslation("login");
+          return t("nonExistentKey");
+        }
+      `,
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "nonExistentKey" in namespace "login" is used here but missing in the translations file.',
+        },
+      ],
+    },
+    // useTranslation with namespace fallback - direct assignment, missing key
+    {
+      code: `
+        function Component() {
+          const t = useTranslation("login");
+          return t("missingKey");
+        }
+      `,
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "missingKey" in namespace "login" is used here but missing in the translations file.',
+        },
+      ],
+    },
+    // useTranslation with completely non-existent namespace (not in mapping, not as prefix)
+    {
+      code: `
+        function Component() {
+          const { t } = useTranslation("completelyUnknown");
+          return t("someKey");
+        }
+      `,
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "someKey" in namespace "completelyUnknown" is used here but missing in the translations file.',
+        },
+      ],
+    },
+
+    //------------------------------------------------------------------
+    // next-intl: useTranslations with nested prefix and missing key
+    //------------------------------------------------------------------
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("admin.sidebar");
+          return t("nonExistentKey");
+        }
+      `,
+      options,
+      errors: [
+        {
+          message:
+            'Translation key "admin.sidebar.nonExistentKey" in namespace "default" is used here but missing in the translations file.',
         },
       ],
     },
