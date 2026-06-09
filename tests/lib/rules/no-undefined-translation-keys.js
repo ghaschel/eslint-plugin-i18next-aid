@@ -321,6 +321,50 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
+    // Mode 2 variant: ancestor uses useTranslation (react-i18next destructured)
+    {
+      code: `
+        function Page() {
+          const { t } = useTranslation("common");
+          function helper(t) {
+            return t("thisKeyIsMissingInDefault");
+          }
+          return helper(t);
+        }
+      `,
+      options,
+    },
+    // Mode 2 variant: deeper nesting — grandparent has useTranslations
+    {
+      code: `
+        function GrandParent() {
+          const t = useTranslations("admin.sidebar");
+          function Parent() {
+            function helper(t) {
+              return t("thisKeyIsMissingInDefault");
+            }
+            return helper(t);
+          }
+          return Parent();
+        }
+      `,
+      options,
+    },
+    // Parameter t used multiple times in the same helper
+    {
+      code: `
+        function Page() {
+          const t = useTranslations("common");
+          function helper(t) {
+            const a = t("thisKeyIsMissingInDefault");
+            const b = t("anotherMissingKey");
+            return a + b;
+          }
+          return helper(t);
+        }
+      `,
+      options,
+    },
   ],
 
   invalid: [
