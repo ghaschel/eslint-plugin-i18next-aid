@@ -269,6 +269,58 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       code: "t(`dynamic.${key}`)",
       options,
     },
+
+    //------------------------------------------------------------------
+    // Parameter-passed t — namespace is unresolvable, must not error
+    //------------------------------------------------------------------
+    // Plain function declaration: t is a parameter
+    {
+      code: `
+        function helper(t) {
+          return t("thisKeyIsMissingInDefault");
+        }
+      `,
+      options,
+    },
+    // Arrow function: t is a parameter
+    {
+      code: `
+        const helper = (t) => t("thisKeyIsMissingInDefault");
+      `,
+      options,
+    },
+    // Function expression: t is a parameter
+    {
+      code: `
+        const helper = function(plan, t) {
+          return t("thisKeyIsMissingInDefault");
+        };
+      `,
+      options,
+    },
+    // t is a parameter with a default value
+    {
+      code: `
+        function helper(plan, t = null) {
+          return t("thisKeyIsMissingInDefault");
+        }
+      `,
+      options,
+    },
+    // Mode 2: helper is nested inside a component whose own useTranslations
+    // would otherwise leak into helper's t() calls via the ancestor scan.
+    {
+      code: `
+        function Page() {
+          const t = useTranslations("common");
+          function helper(t) {
+            return t("thisKeyIsMissingInDefault");
+          }
+          return helper(t);
+        }
+      `,
+      options,
+    },
   ],
 
   invalid: [
