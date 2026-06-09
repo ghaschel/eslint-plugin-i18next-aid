@@ -60,8 +60,8 @@ To get validation on keys used inside helper functions, declare `t` locally:
 
 ```js
 // ✅ Validated — t is declared directly in this scope
-async function helper(locale) {
-  const t = await getTranslations({ locale, namespace: "common" });
+async function ServerPage({ locale }) {
+  const t = await getTranslations("common");
   return t("appName");
 }
 ```
