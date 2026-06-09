@@ -1,0 +1,4 @@
+{
+  "default": "../lib/lang/en.json",
+  "register": "../lib/lang/register.json"
+}

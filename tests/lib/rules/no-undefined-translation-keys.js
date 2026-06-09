@@ -34,6 +34,16 @@ const options = [
   },
 ];
 
+const multiNamespaceOptions = [
+  {
+    namespaceTranslationMappingFile: path.resolve(
+      __dirname,
+      "../../multiNamespaceMapping.json"
+    ),
+    defaultNamespace: "default",
+  },
+];
+
 ruleTester.run("no-undefined-translation-keys", rule, {
   valid: [
     //------------------------------------------------------------------
@@ -365,6 +375,62 @@ ruleTester.run("no-undefined-translation-keys", rule, {
       `,
       options,
     },
+
+    //------------------------------------------------------------------
+    // Multi-namespace: useTranslations arg matches a registered namespace
+    //------------------------------------------------------------------
+    // useTranslations("register") — "register" is in the mapping → use as namespace
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("register");
+          return t("accountFlow.states.startingProvider");
+        }
+      `,
+      options: multiNamespaceOptions,
+    },
+    // Multi-instance: tAuth alongside t — correct namespace still resolved for t
+    {
+      code: `
+        function Component() {
+          const tAuth = useTranslations("auth.consent");
+          const t = useTranslations("register");
+          return t("accountFlow.states.startingProvider");
+        }
+      `,
+      options: multiNamespaceOptions,
+    },
+    // Opposite declaration order — t before tAuth
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("register");
+          const tAuth = useTranslations("auth.consent");
+          return t("accountFlow.actions.startTrial");
+        }
+      `,
+      options: multiNamespaceOptions,
+    },
+    // getTranslations (async) — namespace arg
+    {
+      code: `
+        async function Page() {
+          const t = await getTranslations("register");
+          return t("accountFlow.actions.subscribeNow");
+        }
+      `,
+      options: multiNamespaceOptions,
+    },
+    // getTranslations (sync) — namespace arg
+    {
+      code: `
+        function helper() {
+          const t = getTranslations("register");
+          return t("accountFlow.states.startingProvider");
+        }
+      `,
+      options: multiNamespaceOptions,
+    },
   ],
 
   invalid: [
@@ -560,6 +626,25 @@ ruleTester.run("no-undefined-translation-keys", rule, {
         {
           message:
             'Translation key "admin.sidebar.nonExistentKey" in namespace "default" is used here but missing in the translations file.',
+        },
+      ],
+    },
+
+    //------------------------------------------------------------------
+    // Multi-namespace: missing key reports correct namespace (not "default")
+    //------------------------------------------------------------------
+    {
+      code: `
+        function Component() {
+          const t = useTranslations("register");
+          return t("accountFlow.states.missingKey");
+        }
+      `,
+      options: multiNamespaceOptions,
+      errors: [
+        {
+          message:
+            'Translation key "accountFlow.states.missingKey" in namespace "register" is used here but missing in the translations file.',
         },
       ],
     },

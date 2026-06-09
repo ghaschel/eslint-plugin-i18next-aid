@@ -1,0 +1,11 @@
+{
+  "accountFlow": {
+    "states": {
+      "startingProvider": "Starting with {provider}..."
+    },
+    "actions": {
+      "subscribeNow": "Subscribe now",
+      "startTrial": "Start trial"
+    }
+  }
+}
